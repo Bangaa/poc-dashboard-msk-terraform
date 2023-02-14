@@ -32,10 +32,15 @@ resource "aws_subnet" "subnet_az2" {
   }
 }
 
-# sg
+# SG
 
 resource "aws_security_group" "sg" {
   vpc_id = aws_vpc.myVPC.id
+}
+
+# Cloudwatch Log group
+resource "aws_cloudwatch_log_group" "msk_brokers" {
+  name = "msk_broker_logs"
 }
 
 # MSK
@@ -51,4 +56,13 @@ resource "aws_msk_cluster" "poc_cluster" {
   cluster_name           = "${var.cluster_name}"
   kafka_version          = "2.8.1"
   number_of_broker_nodes = 2
+
+  logging_info {
+    broker_logs {
+      cloudwatch_logs {
+        enabled   = true
+        log_group = aws_cloudwatch_log_group.msk_brokers.name
+      }
+    }
+  }
 }
